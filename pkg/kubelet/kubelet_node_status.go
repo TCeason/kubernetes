@@ -130,7 +130,7 @@ func (kl *Kubelet) tryRegisterWithAPIServer(node *v1.Node) bool {
 // reconcileHugePageResource will update huge page capacity for each page size and remove huge page sizes no longer supported
 func (kl *Kubelet) reconcileHugePageResource(initialNode, existingNode *v1.Node) bool {
 	requiresUpdate := updateDefaultResources(initialNode, existingNode)
-	supportedHugePageResources := sets.String{}
+	supportedHugePageResources := sets.Set[string]{}
 
 	for resourceName := range initialNode.Status.Capacity {
 		if !v1helper.IsHugePageResourceName(resourceName) {
@@ -738,8 +738,6 @@ func (kl *Kubelet) defaultNodeStatusFuncs() []func(context.Context, *v1.Node) er
 		nodestatus.GoRuntime(),
 		nodestatus.RuntimeHandlers(kl.runtimeState.runtimeHandlers),
 	)
-	// Volume limits
-	setters = append(setters, nodestatus.VolumeLimits(kl.volumePluginMgr.ListVolumePluginWithLimits))
 
 	setters = append(setters,
 		nodestatus.MemoryPressureCondition(kl.clock.Now, kl.evictionManager.IsUnderMemoryPressure, kl.recordNodeStatusEvent),
